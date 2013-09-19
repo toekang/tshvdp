@@ -1,0 +1,83 @@
+#!/bin/bash
+# Enter [q] to quit! anyway, me, 'toekang' not giving any warranty & responsibility to anything! and to any damage on your system. proceed at your own risk.
+function s3 { sleep 3; }; function t { cd ~; ./tshvdp; }; function i_t { executable=$1; apt-get update; apt-get install $1 -y; apt-get clean; } ; function p_i { echo; echo -e "\033[1;37m$1 
+"; }; function e_e { i_t "zlib1g-dev libpam0g-dev libssl-dev openssl build-essential gcc" ; }; if [ ! -f /etc/debian_version ]; then p_i " Debian 6/7 only!"; s3; exit; fi; if [ $USER \
+!= 'root' ]; then echo " Run as root!"; s3; exit; fi; function r_v { executable=$1; apt-get remove --purge $1 -y; }; function r_e { executable=$1; dpkg -l | grep -i "$1"; apt-get aut\
+oremove -y; }; function a_b { if [ $ADDPORT = 'q' ]; then echo "  Aborting!"; s3; t; fi; }; function a_t { read -p ") Enter addition port [123]|[q]: " -r ADDPORT; }; function o_v { function \
+w_v { if [ ! -e /etc/openvpn/ ]; then echo ") Install OpenVPN first"; s3; o_v; fi; }; function a_v { p2=`echo ${PORT:0:2}`; sed -i 's|;cipher AES-128-CBC   # AES|cipher AES-128-CBC   # AES|' \
+$TYPE$PORT.conf; sed -i 's|;push "redirect-gateway def1 bypass-dhcp"|push "redirect-gateway def1 bypass-dhcp"|' $TYPE$PORT.conf; 
+sed -i 's|;push "dhcp-option DNS 208.67.220.220"|push "dhcp-option DNS 8.8.8.8"|' $TYPE$PORT.conf; sed -i 's|port 1194|port '$PORT'|' $TYPE$PORT.conf; sed\
+ -i 's|proto udp|proto '$TYPE'|' $TYPE$PORT.conf; sed -i 's|server 10.8.0.0 255.255.255.0|server 10.8.'$p2'.0 255.255.255.0|' $TYPE$PORT.conf; iptables -t nat -A POSTROUTING -s 10.8.$p2.0/24 \
+-j SNAT --to $IP; sed -i "/# By default this script does nothing./a\iptables -t nat -A POSTROUTING -s 10.8.$p2.0/24 -j SNAT --to $IP" /etc/rc.local; }; function d_m { echo; read -p "  Enter y\
+our server IP address: " -e -i $IP IP; echo; read -p "  Enter OpenVPN protocol e.g[udp|tcp]: " -e -i tcp TYPE; echo; read -p "  Enter OpenVPN port e.g: " -e -i 143 PORT; }; function ov { CN=/\
+root/$CLIENT-$TYPE$PORT.ovpn; echo $1 >> $CN; }; function cli_ent { cd /etc/openvpn/easy-rsa/2.0/keys; ov "client"; ov "dev tun"; ov "proto $TYPE"; ov "remote $IP $PORT"; ov "resolv-retry inf\
+inite"; ov "nobind"; ov "persist-key"; ov "persist-tun"; ov "ns-cert-type server"; ov "cipher AES-128-CBC"; ov "comp-lzo"; ov "verb 3"; ov "<ca>"; cat ca.crt >> $CN; ov "</ca>"; ov "<cert>"
+cat $CLIENT.crt >> $CN; ov "</cert>"; ov "<key>"; cat $CLIENT.key >> $CN; ov "</key>"; }; if [ ! -e /dev/net/tun ]; then clear; p_i "  TUN/TAP is not available!"; s3; ./tsvpn; fi; echo "$(gr\
+ep address /etc/network/interfaces | grep -v 127.0.0.1  | awk '{print $2}' | grep -q '.' | head -1)"; IP=$(grep address /etc/network/interfaces | grep -v 127.0.0.1  | awk '{print $2}' | grep \
+'.' | head -1); clear; echo "################################################################################"; echo "#   OpenVPN With Additional Protocol & Port Selection Quick Installer Scr\
+ipt.  #"; echo "#     No warranty to any damage on your system, proceed at your own risk!      #"; echo "################################################################################"; ech\
+o; echo; echo "   1) Un|Install OpenVPN"; echo "   2) Add|Remove port"; echo "   3) Add|Revoke cert"; p_i "   0) Back to main ./tshvdp"; read -p "  Select an option [0-3]: " -n 1 -r option
+case $option in 1)if [ -e /etc/openvpn ]; then read -p ") Uninstall OpenVPN? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]; then sed -i '/iptables -t nat -A POSTROUTING -s 10.8.'g_t'.0/d'\
+ /etc/rc.local; service openvpn stop; r_v openvpn\*; r_e openvpn; rm -rf /etc/openvpn /usr/share/doc/openvpn; p_i "  Done uninstalling OpenVPN"; s3; o_v; else echo "  Aborting!"; s3; o_v; fi
+fi; echo; d_m; echo; read -p "  Enter client name e.g: " -e -i toekang CLIENT; echo; i_t "openvpn iptables openssl"; cp -R /usr/share/doc/openvpn/examples/easy-rsa/ /etc/openvpn; cd /etc/open\
+vpn/easy-rsa/2.0/; cp -u -p openssl-1.0.0.cnf openssl.cnf; . /etc/openvpn/easy-rsa/2.0/vars; . /etc/openvpn/easy-rsa/2.0/clean-all; export EASY_RSA="${EASY_RSA:-.}"; "$EASY_RSA/pkitool" --ini\
+tca $*; export EASY_RSA="${EASY_RSA:-.}"; "$EASY_RSA/pkitool" --server server; export KEY_CN="$CLIENT"; export EASY_RSA="${EASY_RSA:-.}"; "$EASY_RSA/pkitool" $CLIENT; . /etc/openvpn/easy-rsa/\
+2.0/build-dh; cd /usr/share/doc/openvpn/examples/sample-config-files; gunzip -d server.conf.gz; cp server.conf /etc/openvpn/$TYPE$PORT.conf; cp server.conf /etc/openvpn/.server; cd /etc/openv\
+pn/easy-rsa/2.0/keys; cp ca.crt ca.key dh1024.pem server.crt server.key /etc/openvpn; cd /etc/openvpn/; a_v; touch /etc/openvpn/.$TYPE$PORT.dummy; cli_ent; cd ~; clear; /etc/init.d/openvpn re\
+start; netstat -tulpn; echo; echo "  Done installing OpenVPN"; echo "  OpenVPN config for $CLIENT available at ~/$CLIENT-$TYPE$PORT.ovpn"; echo "  Running on $TYPE $IP:$PORT"; read -p "  Back\
+ to main [enter]: "; o_v;; 2)w_v; echo; d_m; if [ -e /etc/openvpn/.$TYPE$PORT.dummy ]; then echo; read -p "  $TYPE$PORT already added, remove? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]
+then p2=`echo ${PORT:0:2}`; sed -i '/iptables -t nat -A POSTROUTING -s 10.8.'$p2'.0/d' /etc/rc.local; rm -rf /etc/openvpn/.$TYPE$PORT.dummy etc/openvpn/$TYPE$PORT.conf; service openvpn restar\
+t; netstat -tulpn; p_i "  Done removing $TYPE$PORT"; s3; o_v; else echo "  Aborting!"; s3; o_v; fi; fi; cd /etc/openvpcp .server $TYPE$PORT.conf; a_v; mkdir /etc/openvpn/.$TYPE$PORT.dummy; se\
+rvice openvpn restart; netstat -tulpn; echo; echo "  Protocol $TYPE & port $PORT added"; echo "  You need to edit or duplicate the config on client"; echo "  Change the protocol to [$TYPE] & \
+port to [$PORT]"; read -p "  Back to main [enter]: "; o_v;; s3)w_v; echo; echo; read -p "  Enter client name e.g.: " -e -i toekang CLIENT; if [ -e /etc/openvpn/easy-rsa/2.0/keys/$CLIENT.crt ]
+then echo; read -p "  Found $CLIENT cert, revoke? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]; then cd /etc/openvpn/easy-rsa/2.0/; . /etc/openvpn/easy-rsa/2.0/vars; . /etc/openvpn/easy-\
+rsa/2.0/revoke-full $CLIENT; rm -rf $CLIENT.crt $CLIENT.key; cd ~; rm -rf $CLIENT-$TYPE$PORT.ovpn; p_i "  Done revoking $CLIENT cert"; s3; o_v; else echo "  Aborting!"; s3; o_v; fi; fi; d_m
+if [ ! -e /etc/openvpn/.$TYPE$PORT.dummy ]; then echo; echo "  protocol $TYPE & port $PORT not available!"; echo "  To see active OpenVPN protocol and port,"; echo "  Enter command [netstat -\
+tulpn]"; s3; o_v; fi; cd /etc/openvpn/easy-rsa/2.0/; source ./vars; export KEY_CN="$CLIENT"; export EASY_RSA="${EASY_RSA:-.}"; "$EASY_RSA/pkitool" $CLIENT; cli_ent; echo; echo "  Done adding \
+cert for $CLIENT"; echo "  $CLIENT config available at ~/$CLIENT-$TYPE$PORT.ovpn"; read -p "  Back to main [enter]: "; o_v;; 0)t;; esac; echo "  Can't find that option!"; s3; o_v; }; function\
+ add_ports { sed -i 's|Port.*|Port '$PORT'|' /etc/ssh/sshd_config; service ssh restart; }; function ssh_one { read -p ") Enter OpenSSH port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/sr\
+c/61 ]; then e_e; cd /usr/local/src; wget toe.us.to/61; wget toe.us.to/13v14; fi; cd /usr/local/src/; tar -xzvf 61; cd openssh-6.1p1; zcat /usr/local/src/13v14 | patch; ./configure --\
+prefix=/usr/local/src --sysconfdir=/etc/ssh --bindir=/usr/bin/ --sbindir=/usr/sbin --with-pam --with-4in6; make; make install; chown root:root -R /usr/local/src/openssh-6.1p1; add_ports; }
+function ssh_two { read -p ") Enter OpenSSH port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/62 ]; then e_e; cd /usr/local/src; wget toe.us.to/62; fi; cd /usr/local/src; tar -xzf \
+62; cd openssh-6.2p2; ./configure --prefix=/usr/local/src --sysconfdir=/etc/ssh --bindir=/usr/bin/ --sbindir=/usr/sbin --with-pam --with-4in6; make; make install; chown root:root -R /usr/loca\
+l/src/openssh-6.2p2; add_ports; }; function res_def { read -p ") Restore OpenSSH, port [123]|[q]: " -r PORT; a_b; cd ~; rm -rf etc/ssh/* /usr/local/versions /usr/local/src/{openssh-6.1p1,open\
+ssh-6.2p2,share,libexec}; rm -f /usr/local/bin/{scp,sftp,slogin,ssh,ssh-add,ssh-agent,ssh-keygen,ssh-keyscan}; r_v openssh-server\*; r_e openssh-server; i_t openssh-server; add_ports; ssh -V
+p_i "  OpenSSH restored & running on port $PORT"; s3; t; }; function adp_ssh { if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then a_t; a_b; if [ -e /etc/ssh/.$ADDPORT ]; then read -p "  Remov\
+e port $ADDPORT? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then sed -i 's/^Port '$ADDPORT'//' /etc/ssh/sshd_config; rm -rf /etc/ssh/.$ADDPORT; service ssh restart; netstat -tulpn; p_i "  P\
+ort $ADDPORT removed!"; s3; t; else echo "  Aborting!"; s3; t; fi; fi; echo "Port $ADDPORT" >> "/etc/ssh/sshd_config"; touch /etc/ssh/.$ADDPORT; service ssh restart; netstat -tulpn; p_i "  Po\
+rt $ADDPORT added!"; s3; t; else echo "  Dropbear running instead!"; s3; t; fi; }; function adp_drb { if [ -e /etc/ssh/sshd_not_to_be_run ]; then a_t; a_b; if [ -e /etc/dropbear/.$ADDPORT ]
+then read -p "  Remove port $ADDPORT? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then sed -i 's/^DROPBEAR_EXTRA_ARGS="-p '$ADDPORT'"/DROPBEAR_EXTRA_ARGS="-p "/' /etc/default/dropbear; rm -r\
+f /etc/dropbear/.$ADDPORT; service dropbear restart; netstat -tulpn; p_i "  Port $ADDPORT removed!"; s3; t; else echo "  Aborting!"; s3; t; fi; fi; sed -i 's/^DROPBEAR_EXTRA_ARGS="-p [0-9]*"/\
+DROPBEAR_EXTRA_ARGS="-p '$ADDPORT'"/' /etc/default/dropbear; touch /etc/dropbear/.$ADDPORT; service dropbear restart; netstat -tulpn; p_i "  Port $ADDPORT added!"; s3; t; else echo ") Install\
+ Dropbear first!"; s3; t; fi; }; function adp_3pr { if [ -e /etc/3proxy/3proxy.cfg ]; then a_t; a_b; if [ -e /etc/3proxy/.$ADDPORT ]; then read -p "  Remove port $ADDPORT? [y/n]: " -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]; then service 3proxy stop; sed -i 's/^proxy -n -p'$ADDPORT' -a//' /etc/3proxy/3proxy.cfg; rm -rf /etc/3proxy/.$ADDPORT; s3; service 3proxy start; p_i "  Port $ADDPOR\
+T removed!"; s3; t; else echo "  Aborting!"; s3; t; fi; fi; service 3proxy stop; echo "proxy -n -p$ADDPORT -a" >> "/etc/3proxy/3proxy.cfg"; touch /etc/3proxy/.$ADDPORT; service 3proxy start
+p_i "  Port $ADDPORT added!"; s3; t; else echo "  Install 3proxy first!"; s3; t; fi; }; p_i ""; clear; echo "################################################################################"
+echo "#  OpenSSH6.1p1-HPN13v14-6.2p2-OpenVPN-Dropbear-3Proxy Quick Installer Script. #"; echo "#     No warranty to any damage on your system, proceed at your own risk!      #"; echo "#######\
+#########################################################################"; echo; echo; echo "   1) Un|Install OpenSSH_6.2p2           6) Server Speedtest"; echo "   2) Un|Install OpenSSH6.1p\
+1-HPN13v14   7) Add|Remove OpenSSH addition port"; echo "   3) Un|Install Dropbear_2013.58        8) Add|Remove Dropbear addition port"; echo "   4) Un|Install 3Proxy                  9) Add|\
+Remove 3Proxy addition port"; echo "   5) Un|Install OpenVPN                 0) Script info ./tshvdp"; echo; read -p "  Select an option [0-9]|[ctrl+c]: " -n 1 -r option; case $option in 7)ad\
+p_ssh;; 8)adp_drb;; 9)adp_3pr;; 2)if [ -e /etc/ssh/sshd_not_to_be_run ]; then echo ") Uninstall Dropbear first!"; s3; t; fi; if [ -e /usr/local/src/openssh-6.2p2 ]; then echo "  Uninstall Ope\
+nSSH6.2p2 first!"; t; else if [ ! -e /usr/local/src/openssh-6.1p1 ]; then ssh_one; ssh -V; p_i "  OpenSSH6.1p1-HPN13v14 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 1)\
+if [ -e /etc/ssh/sshd_not_to_be_run ]; then echo ") Uninstall Dropbear first!"; s3; t; fi; if [ -e /usr/local/src/openssh-6.1p1 ]; then echo ") Uninstall OpenSSH6.1p1-HPN13v14 first!"; s3; t
+else if [ ! -e /usr/local/src/openssh-6.2p2 ]; then ssh_two; add_ports; service ssh restart; ssh -V; p_i "  OpenSSH6.2p2 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 
+3)if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Enter Dropbear port [123]|[q]: " -r PORT; a_b; e_e; i_t dropbear; apt-get -q -y build-dep dropbear; cd /usr/local/src; wget toe.us.t\
+o/58; tar xvfj 58; cd dropbear-2013.58; ./configure; make; make install; cd ~; invoke-rc.d ssh stop; touch /etc/ssh/sshd_not_to_be_run; sed -i 's|NO_START=1|NO_START=0|' /etc/default/drop\
+bear; sed -i 's|DROPBEAR_PORT=22|DROPBEAR_PORT='$PORT'|' /etc/default/dropbear; sed -i 's|DROPBEAR_EXTRA_ARGS=|DROPBEAR_EXTRA_ARGS="-p "|' /etc/default/dropbear; sed -i 's|DAEMON=/usr/sbin/dr\
+opbear|DAEMON=/usr/local/sbin/dropbear|' /etc/init.d/dropbear; service dropbear restart; netstat -tulpn; p_i "  Dropbear installed & running on port $PORT"; s3; t; fi; if [ -e /etc/ssh/sshd_n\
+ot_to_be_run ]; then read -p ") Uninstall Dropbear? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then service dropbear stop; rm -f /etc/ssh/sshd_not_to_be_run /etc/default/dropbear; r_v dropb\
+ear\*; r_e dropbear; service ssh start; netstat -tulpn; p_i " Done uninstalling Dropbear"; s3; t; else echo "  Aborting!"; s3; t; fi; fi;; 4)if [ ! -e /etc/3proxy/3proxy.cfg ]; then read -p "\
+) Enter 3proxy port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/3proxy-0.6.1.tgz ]; then cd /usr/local/src; wget toe.us.to/3; tar -xvzf 3; cd 3proxy-0.6.1; e_e; make -f Makefile.L\
+inux; fi; mkdir /etc/3proxy; cp -r /usr/local/src/3proxy-0.6.1 /etc/3proxy; cd /etc/3proxy; touch /var/log/3proxy.log; touch /etc/3proxy/3proxy.cfg; rm -rf /var/lib/radom_salt; function get_p\
+assword { SALT=/var/lib/radom_salt; if [ ! -f "$SALT" ]; then head -c 512 /dev/urandom > "$SALT"; chmod 400 "$SALT"; fi; password=`(cat "$SALT"; echo $PORT) | md5sum | base64`; echo ${passwor\
+d:0:5}; }; touch /etc/3proxy/.$PORT; passwd=`get_password`; function 3p { echo $1 >> "/etc/3proxy/3proxy.cfg"; }; 3p "nserver 8.8.8.8"; 3p "nserver 8.8.4.4"; 3p "nscache 65536"; 3p "timeouts \
+1 5 30 60 180 1800 15 60"; 3p "users $PORT:CL:$passwd"; 3p "daemon"; 3p "log /var/log/3proxy.log"; 3p "logformat \"- +_L%t.%. %N.%p %E %U %C:%c %R:%r %O %I %h %T\""; 3p "archiver gz /usr/bin/\
+gzip %F"; 3p "rotate 7"; 3p "authcache user 60"; 3p "auth strong cache"; 3p "proxy -n -p$PORT -a"; chmod 600 /etc/3proxy/3proxy.cfg; echo "#!/bin/sh" > "/etc/init.d/3proxy"; echo "cas\
+e \"\$1\" in start) /etc/3proxy/3proxy-0.6.1/src/3proxy /etc/3proxy/3proxy.cfg; /etc/3proxy/3proxy-0.6.1/src/3proxy /etc/3proxy/3proxy.cfg; echo Starting 3Proxy; netstat -tulpn;; stop) /usr/b\
+in/killall 3proxy;; *)echo Usage: \$0 \"{start|stop}\"; exit 1; esac; exit 0" >> "/etc/init.d/3proxy"; chmod +x /etc/init.d/3proxy; update-rc.d 3proxy defaults; iptables -I INPUT -p tcp --dpo\
+rt $PORT -j ACCEPT; if [ -f /etc/iptables.up.rules ]; then iptables-save < /etc/iptables.up.rules; fi; service 3proxy start; echo; echo "  3Proxy installed & running on port $PORT"; echo "  Y\
+our proxy is authenticated! Your Proxy authentication: $PORT | $passwd"; echo "  You can add or delete & edit, enable or disable the authentication,"; echo "  Change the proxy type, add addit\
+ional port at /etc/3proxy/3proxy.cfg"; echo; read -p "  Back to main [enter]: "; cd ~; t; else read -p ") Uninstall 3Proxy? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; /usr/bin/ki\
+llall 3proxy; rm -rf /etc/3proxy /usr/local/etc/3proxy /etc/init.d/3proxy /var/log/3proxy.log; netstat -tulpn; p_i "  Done unistalling 3Proxy"; s3; t; else echo "  Aborting!"; s3; t; fi; fi;;
+5)o_v;; 6)function t_ag { echo; read -p "  Test again? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; ./sv --share; t_ag; else t; fi; }; if [ ! -e ~/sv ]; then echo; wget nyany\
+uk.uk.ht/sv; chmod 100 sv; fi; clear; p_i ""; ./sv --share; t_ag; t;; 0)cat ~/tshvdp | less; t;; esac; echo ") Can't find that option!"; s3; t done
