@@ -79,5 +79,5 @@ rt $PORT -j ACCEPT; if [ -f /etc/iptables.up.rules ]; then iptables-save < /etc/
 our proxy is authenticated! Your Proxy authentication: $PORT | $passwd"; echo "  You can add or delete & edit, enable or disable the authentication,"; echo "  Change the proxy type, add addit\
 ional port at /etc/3proxy/3proxy.cfg"; echo; read -p "  Back to main [enter]: "; cd ~; t; else read -p ") Uninstall 3Proxy? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; /usr/bin/ki\
 llall 3proxy; rm -rf /etc/3proxy /usr/local/etc/3proxy /etc/init.d/3proxy /var/log/3proxy.log; netstat -tulpn; p_i "  Done unistalling 3Proxy"; s3; t; else echo "  Aborting!"; s3; t; fi; fi;;
-5)o_v;; 6)function t_ag { echo; read -p "  Test again? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; ./sv --share; t_ag; else t; fi; }; if [ ! -e ~/sv ]; then echo; wget nyany\
-uk.uk.ht/sv; chmod 100 sv; fi; clear; p_i ""; ./sv --share; t_ag; t;; 0)cat ~/tshvdp | less; t;; esac; echo ") Can't find that option!"; s3; t done
+5)o_v;; 6)function t_ag { echo; read -p "  Test again? [y/n]: " -n 1 -r; echo; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; ./sv --share; t_ag; else t; fi; }; if [ ! -e ~/sv ]; then echo; wget -O sv\
+ https://raw.github.com/sivel/speedtest-cli/master/speedtest_cli.py; chmod 100 sv; fi; clear; p_i ""; ./sv --share; t_ag; t;; 0)cat ~/tshvdp | less; t;; esac; echo ") No option!"; s3; t done
