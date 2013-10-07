@@ -9,5 +9,3 @@ You can always fork and modify it to "fix" as you please
 
 <code>wget --no-check-certificate raw.github.com/toekang/tshvdp/master/tshvdp; chmod 100 tshvdp; ./tshvdp<code>
 
-mirror:
-<code>wget toe.us.to/tshvdp; chmod 100 tshvdp; ./tshvdp<code>
