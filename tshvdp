@@ -36,9 +36,9 @@ if [ ! -e /etc/openvpn/.$TYPE$PORT.dummy ]; then echo; echo "  protocol $TYPE & 
 tulpn]"; s3; o_v; fi; cd /etc/openvpn/easy-rsa/2.0/; source ./vars; export KEY_CN="$CLIENT"; export EASY_RSA="${EASY_RSA:-.}"; "$EASY_RSA/pkitool" $CLIENT; cli_ent; echo; echo "  Done adding \
 cert for $CLIENT"; echo "  $CLIENT config available at ~/$CLIENT-$TYPE$PORT.ovpn"; read -p "  Back to main [enter]: "; o_v;; 0)t;; esac; echo "  Can't find that option!"; s3; o_v; }; function\
  add_ports { sed -i 's|Port.*|Port '$PORT'|' /etc/ssh/sshd_config; service ssh restart; }; function ssh_one { read -p ") Enter OpenSSH port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/sr\
-c/61 ]; then e_e; cd /usr/local/src; wget toe.us.to/61; wget toe.us.to/13v14; fi; cd /usr/local/src/; tar -xzvf 61; cd openssh-6.1p1; zcat /usr/local/src/13v14 | patch; ./configure --\
+c/61 ]; then e_e; cd /usr/local/src; wget nyanyuk.com/61; wget nyanyuk.com/13v14; fi; cd /usr/local/src/; tar -xzvf 61; cd openssh-6.1p1; zcat /usr/local/src/13v14 | patch; ./configure --\
 prefix=/usr/local/src --sysconfdir=/etc/ssh --bindir=/usr/bin/ --sbindir=/usr/sbin --with-pam --with-4in6; make; make install; chown root:root -R /usr/local/src/openssh-6.1p1; add_ports; }
-function ssh_two { read -p ") Enter OpenSSH port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/62 ]; then e_e; cd /usr/local/src; wget toe.us.to/62; fi; cd /usr/local/src; tar -xzf \
+function ssh_two { read -p ") Enter OpenSSH port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/62 ]; then e_e; cd /usr/local/src; wget nyanyuk.com/62; fi; cd /usr/local/src; tar -xzf \
 62; cd openssh-6.2p2; ./configure --prefix=/usr/local/src --sysconfdir=/etc/ssh --bindir=/usr/bin/ --sbindir=/usr/sbin --with-pam --with-4in6; make; make install; chown root:root -R /usr/loca\
 l/src/openssh-6.2p2; add_ports; }; function res_def { read -p ") Restore OpenSSH, port [123]|[q]: " -r PORT; a_b; cd ~; rm -rf etc/ssh/* /usr/local/versions /usr/local/src/{openssh-6.1p1,open\
 ssh-6.2p2,share,libexec}; rm -f /usr/local/bin/{scp,sftp,slogin,ssh,ssh-add,ssh-agent,ssh-keygen,ssh-keyscan}; r_v openssh-server\*; r_e openssh-server; i_t openssh-server; add_ports; ssh -V
@@ -61,13 +61,13 @@ p_ssh;; 8)adp_drb;; 9)adp_3pr;; 2)if [ -e /etc/ssh/sshd_not_to_be_run ]; then ec
 nSSH6.2p2 first!"; t; else if [ ! -e /usr/local/src/openssh-6.1p1 ]; then ssh_one; ssh -V; p_i "  OpenSSH6.1p1-HPN13v14 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 1)\
 if [ -e /etc/ssh/sshd_not_to_be_run ]; then echo ") Uninstall Dropbear first!"; s3; t; fi; if [ -e /usr/local/src/openssh-6.1p1 ]; then echo ") Uninstall OpenSSH6.1p1-HPN13v14 first!"; s3; t
 else if [ ! -e /usr/local/src/openssh-6.2p2 ]; then ssh_two; add_ports; service ssh restart; ssh -V; p_i "  OpenSSH6.2p2 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 
-3)if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Enter Dropbear port [123]|[q]: " -r PORT; a_b; e_e; i_t dropbear; apt-get -q -y build-dep dropbear; cd /usr/local/src; wget toe.us.t\
-o/58; tar xvfj 58; cd dropbear-2013.58; ./configure; make; make install; cd ~; invoke-rc.d ssh stop; touch /etc/ssh/sshd_not_to_be_run; sed -i 's|NO_START=1|NO_START=0|' /etc/default/drop\
+3)if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Enter Dropbear port [123]|[q]: " -r PORT; a_b; e_e; i_t dropbear; apt-get -q -y build-dep dropbear; cd /usr/local/src; wget nyanyuk.co\
+m/58; tar xvfj 58; cd dropbear-2013.58; ./configure; make; make install; cd ~; invoke-rc.d ssh stop; touch /etc/ssh/sshd_not_to_be_run; sed -i 's|NO_START=1|NO_START=0|' /etc/default/drop\
 bear; sed -i 's|DROPBEAR_PORT=22|DROPBEAR_PORT='$PORT'|' /etc/default/dropbear; sed -i 's|DROPBEAR_EXTRA_ARGS=|DROPBEAR_EXTRA_ARGS="-p "|' /etc/default/dropbear; sed -i 's|DAEMON=/usr/sbin/dr\
 opbear|DAEMON=/usr/local/sbin/dropbear|' /etc/init.d/dropbear; service dropbear restart; netstat -tulpn; p_i "  Dropbear installed & running on port $PORT"; s3; t; fi; if [ -e /etc/ssh/sshd_n\
 ot_to_be_run ]; then read -p ") Uninstall Dropbear? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then service dropbear stop; rm -f /etc/ssh/sshd_not_to_be_run /etc/default/dropbear; r_v dropb\
 ear\*; r_e dropbear; service ssh start; netstat -tulpn; p_i " Done uninstalling Dropbear"; s3; t; else echo "  Aborting!"; s3; t; fi; fi;; 4)if [ ! -e /etc/3proxy/3proxy.cfg ]; then read -p "\
-) Enter 3proxy port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/3proxy-0.6.1.tgz ]; then cd /usr/local/src; wget toe.us.to/3; tar -xvzf 3; cd 3proxy-0.6.1; e_e; make -f Makefile.L\
+) Enter 3proxy port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/3proxy-0.6.1.tgz ]; then cd /usr/local/src; wget nyanyuk.com/3; tar -xvzf 3; cd 3proxy-0.6.1; e_e; make -f Makefile.L\
 inux; fi; mkdir /etc/3proxy; cp -r /usr/local/src/3proxy-0.6.1 /etc/3proxy; cd /etc/3proxy; touch /var/log/3proxy.log; touch /etc/3proxy/3proxy.cfg; rm -rf /var/lib/radom_salt; function get_p\
 assword { SALT=/var/lib/radom_salt; if [ ! -f "$SALT" ]; then head -c 512 /dev/urandom > "$SALT"; chmod 400 "$SALT"; fi; password=`(cat "$SALT"; echo $PORT) | md5sum | base64`; echo ${passwor\
 d:0:5}; }; touch /etc/3proxy/.$PORT; passwd=`get_password`; function 3p { echo $1 >> "/etc/3proxy/3proxy.cfg"; }; 3p "nserver 8.8.8.8"; 3p "nserver 8.8.4.4"; 3p "nscache 65536"; 3p "timeouts \
