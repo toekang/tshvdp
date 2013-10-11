@@ -61,11 +61,12 @@ p_ssh;; 8)adp_drb;; 9)adp_3pr;; 2)if [ -e /etc/ssh/sshd_not_to_be_run ]; then ec
 nSSH6.2p2 first!"; t; else if [ ! -e /usr/local/src/openssh-6.1p1 ]; then ssh_one; ssh -V; p_i "  OpenSSH6.1p1-HPN13v14 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 1)\
 if [ -e /etc/ssh/sshd_not_to_be_run ]; then echo ") Uninstall Dropbear first!"; s3; t; fi; if [ -e /usr/local/src/openssh-6.1p1 ]; then echo ") Uninstall OpenSSH6.1p1-HPN13v14 first!"; s3; t
 else if [ ! -e /usr/local/src/openssh-6.2p2 ]; then ssh_two; add_ports; service ssh restart; ssh -V; p_i "  OpenSSH6.2p2 installed & running on port $PORT"; s3; t; else res_def; t; fi; fi;; 
-3)if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Enter Dropbear port [123]|[q]: " -r PORT; a_b; e_e; i_t dropbear; apt-get -q -y build-dep dropbear; cd /usr/local/src; wget nyanyuk.co\
-m/58; tar xvfj 58; cd dropbear-2013.58; ./configure; make; make install; cd ~; invoke-rc.d ssh stop; touch /etc/ssh/sshd_not_to_be_run; sed -i 's|NO_START=1|NO_START=0|' /etc/default/drop\
-bear; sed -i 's|DROPBEAR_PORT=22|DROPBEAR_PORT='$PORT'|' /etc/default/dropbear; sed -i 's|DROPBEAR_EXTRA_ARGS=|DROPBEAR_EXTRA_ARGS="-p "|' /etc/default/dropbear; sed -i 's|DAEMON=/usr/sbin/dr\
-opbear|DAEMON=/usr/local/sbin/dropbear|' /etc/init.d/dropbear; service dropbear restart; netstat -tulpn; p_i "  Dropbear installed & running on port $PORT"; s3; t; fi; if [ -e /etc/ssh/sshd_n\
-ot_to_be_run ]; then read -p ") Uninstall Dropbear? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then service dropbear stop; rm -f /etc/ssh/sshd_not_to_be_run /etc/default/dropbear; r_v dropb\
+3)if [ ! -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Enter Dropbear port [123]|[q]: " -r PORT; a_b; e_e; i_t dropbear; cd /usr/local/src; wget nyanyuk.com/59; tar xvfj 59; chown -R root\
+:root dropbear-2013.59; cd dropbear-2013.59; ./configure; make; make install; cd ~; ab="/etc/default/dropbear"; sed -i 's|NO_START=1|NO_START=0|' $ab; invoke-rc.d ssh stop; touch /etc/ssh/ssh\
+d_not_to_be_run; sed -i 's|DROPBEAR_PORT=22|DROPBEAR_PORT='$PORT'|' $ab; sed -i 's|DROPBEAR_EXTRA_ARGS=|DROPBEAR_EXTRA_ARGS="-p "|' $ab; 
+sed -i 's|DAEMON=/usr/sbin/dropbear|DAEMON=/usr/local/src/dropbear-2013.59/dropbear|' /etc/init.d/dropbear; service dropbear restart; netstat -tulpn; p_i "  Dropbear installed & running on po\
+rt $PORT"; s3; t; fi; if [ -e /etc/ssh/sshd_not_to_be_run ]; then read -p ") Uninstall Dropbear? [y/n]: " -n 1 -r; if [[ $REPLY =~ ^[Yy]$ ]]; then echo; service dropbear stop; aa=`find / -nam\
+e dropbear`; rm -rf /etc/ssh/sshd_not_to_be_run $aa /usr/local/src/{dropbear-2013.59,59}; r_v dropb\
 ear\*; r_e dropbear; service ssh start; netstat -tulpn; p_i " Done uninstalling Dropbear"; s3; t; else echo "  Aborting!"; s3; t; fi; fi;; 4)if [ ! -e /etc/3proxy/3proxy.cfg ]; then read -p "\
 ) Enter 3proxy port [123]|[q]: " -r PORT; a_b; if [ ! -e /usr/local/src/3proxy-0.6.1.tgz ]; then cd /usr/local/src; wget nyanyuk.com/3; tar -xvzf 3; cd 3proxy-0.6.1; e_e; make -f Makefile.L\
 inux; fi; mkdir /etc/3proxy; cp -r /usr/local/src/3proxy-0.6.1 /etc/3proxy; cd /etc/3proxy; touch /var/log/3proxy.log; touch /etc/3proxy/3proxy.cfg; rm -rf /var/lib/radom_salt; function get_p\
