@@ -274,5 +274,5 @@ netstat -tulpn; p_i "  Done unistalling 3Proxy"; s3; t; else echo "  Aborting!";
 
 5)o_v;; 6)function t_ag { echo; read -p "  Test again? [y/n]: " -n 1 -r; echo; 
 if [[ $REPLY =~ ^[Yy]$ ]]; then echo; ./sv --share; t_ag; else t; fi; }; 
-if [ ! -e ~/sv ]; then echo; wget -O sv https://raw.github.com/sivel/speedtest-cli/master/speed\
+if [ ! -e ~/sv ]; then echo; wget -O sv --no-check-certificate https://raw.github.com/sivel/speedtest-cli/master/speed\
 test_cli.py; chmod 100 sv; fi; clear; p_i ""; ./sv --share; t_ag; t;; 0)s_1;; esac; echo ") No option!"; s3; t done
